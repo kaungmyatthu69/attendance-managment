@@ -1,6 +1,6 @@
 import AttendanceSvg from "@/assets/images/Attendance.svg";
 import ClassroomSvg from "@/assets/images/Class Room.svg";
-import ExamSvg from "@/assets/images/Exam.svg";
+import CurrentClassSvg from "@/assets/images/CurrentClassInfo.svg";
 import TimetableSvg from "@/assets/images/Timetable.svg";
 import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
@@ -15,19 +15,19 @@ import { Button, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Static image map for dynamic usage
-const imageMap = {
-  Timetable: require("@/assets/images/Timetable.svg"),
-  Attendance: require("@/assets/images/Attendance.svg"),
-  Exam: require("@/assets/images/Exam.svg"),
-  Classroom: require("@/assets/images/Class Room.svg"),
-  Home: require("@/assets/images/Home.png"),
-  // Add more as needed
-};
+// const imageMap = {
+//   Timetable: require("@/assets/images/Timetable.svg"),
+//   Attendance: require("@/assets/images/Attendance-color.svg"),
+//   Exam: require("@/assets/images/Exam.svg"),
+//   Classroom: require("@/assets/images/Class Room.svg"),
+//   Home: require("@/assets/images/Home.png"),
+//   // Add more as needed
+// };
 
 const svgMap = {
   Timetable: TimetableSvg,
   Attendance: AttendanceSvg,
-  Exam: ExamSvg,
+  CurrentClass: CurrentClassSvg,
   Classroom: ClassroomSvg,
 };
 
@@ -55,10 +55,10 @@ const data = [
   },
   {
     id: 4,
-    imageKey: "Exam",
-    name: "Exams",
+    imageKey: "CurrentClass",
+    name: "Current Class",
     description: "Check exam schedules and results",
-    route: "",
+    route: "/currentClass",
   },
 ];
 export default function HomeScreen() {
@@ -96,6 +96,7 @@ export default function HomeScreen() {
   const handleBarCodeScanned = (result: BarcodeScanningResult) => {
     setScanned(true);
     setBarcodeData(result.data);
+    console.log("result", result);
     setShowScanner(false);
   };
 
@@ -162,7 +163,7 @@ export default function HomeScreen() {
         onPress={() => setShowScanner(true)}
       /> */}
       <HStack className="p-5">
-        <Box className="mb-4 w-2/3 border border-blue-400 rounded-lg p-4">
+        <Box className="mb-4 w-2/3  rounded-lg p-4">
           <Text className="text-lg font-bold">
             Welcome <Text className="text-primary-960">Kaung Myat !</Text>
           </Text>
@@ -179,17 +180,17 @@ export default function HomeScreen() {
               {svgMap[item.imageKey as keyof typeof svgMap] ? (
                 React.createElement(
                   svgMap[item.imageKey as keyof typeof svgMap],
-                  { width: 60, height: 60 }
+                  { width: 60, height: 60, color: "#2C7fff" }
                 )
               ) : (
                 <Image
-                  source={item.imageSource}
+                  source={require("@/assets/images/Home.png")}
                   alt="image"
                   className="h-8 w-8"
                   resizeMode="contain"
                 />
               )}
-              <Text className="text-lg font-bold">{item.name}</Text>
+              <Text className="text-lg font-medium">{item.name}</Text>
             </Card>
           </Pressable>
         ))}

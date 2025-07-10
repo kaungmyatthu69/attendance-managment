@@ -8,7 +8,77 @@ import { ChevronLeft } from "lucide-react-native";
 import { Calendar } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const startDate = new Date("2025-02-01");
+const endDate = new Date("2025-03-20");
+const weekdays = ["Monday", "Tuesday", "Wednesday"];
+
 export default function Timetable() {
+  const result = [];
+  const dayNameToNumber: Record<string, number> = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
+  const targetDays = new Set(
+    weekdays.map((day) => dayNameToNumber[day as keyof typeof dayNameToNumber])
+  );
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    if (targetDays.has(d.getDay())) {
+      result.push(new Date(d).toISOString().slice(0, 10)); // YYYY-MM-DD
+    }
+  }
+
+  // Group result dates by consecutive weekday sequence in 'weekdays'
+  const markedDates: {
+    [key: string]: {
+      color: string;
+      textColor: string;
+      startingDay?: boolean;
+      endingDay?: boolean;
+    };
+  } = {};
+
+  let group: string[] = [];
+  for (let i = 0; i < result.length; i++) {
+    group.push(result[i]);
+    const currentDate = new Date(result[i]);
+    const nextDate = i + 1 < result.length ? new Date(result[i + 1]) : null;
+    const currentWeekdayIdx = weekdays.indexOf(
+      Object.keys(dayNameToNumber).find(
+        (k) =>
+          dayNameToNumber[k as keyof typeof dayNameToNumber] ===
+          currentDate.getDay()
+      ) || ""
+    );
+    const nextWeekdayIdx =
+      nextDate !== null
+        ? weekdays.indexOf(
+            Object.keys(dayNameToNumber).find(
+              (k) =>
+                dayNameToNumber[k as keyof typeof dayNameToNumber] ===
+                nextDate.getDay()
+            ) || ""
+          )
+        : -1;
+
+    // If next weekday is not the next in sequence in your weekdays array, or last date, close group
+    if (nextDate === null || nextWeekdayIdx !== currentWeekdayIdx + 1) {
+      group.forEach((date, idx) => {
+        markedDates[date] = {
+          color: "#2C7fff",
+          textColor: "white",
+          ...(idx === 0 && { startingDay: true }),
+          ...(idx === group.length - 1 && { endingDay: true }),
+        };
+      });
+      group = [];
+    }
+  }
+
   return (
     <SafeAreaView className="p-5" style={{ flex: 1 }}>
       <VStack space="md">
@@ -42,34 +112,21 @@ export default function Timetable() {
       >
         <Calendar
           markingType={"period"}
-          markedDates={{
-            "2024-06-10": {
-              startingDay: true,
-              color: "#2563eb",
-              textColor: "white",
-            },
-            "2024-06-11": { color: "#2563eb", textColor: "white" },
-            "2024-06-12": { color: "#2563eb", textColor: "white" },
-            "2024-06-13": {
-              endingDay: true,
-              color: "#2563eb",
-              textColor: "white",
-            },
-          }}
+          markedDates={markedDates}
           theme={{
-            backgroundColor: "#2563eb",
+            backgroundColor: "#2C7fff",
             calendarBackground: "#f7f7f7",
-            textSectionTitleColor: "#2563eb",
-            selectedDayBackgroundColor: "#2563eb",
-            selectedDayTextColor: "#2563eb",
+            textSectionTitleColor: "#2C7fff",
+            selectedDayBackgroundColor: "#2C7fff",
+            selectedDayTextColor: "#2C7fff",
             todayTextColor: "#ff6347",
-            dayTextColor: "#2563eb",
-            textDisabledColor: "#2563eb",
+            dayTextColor: "#2C7fff",
+            textDisabledColor: "#2C7fff",
             dotColor: "#00adf5",
             selectedDotColor: "#ffffff",
-            arrowColor: "#2563eb",
-            monthTextColor: "#2563eb",
-            indicatorColor: "#2563eb",
+            arrowColor: "#2C7fff",
+            monthTextColor: "#2C7fff",
+            indicatorColor: "#2C7fff",
             textDayFontFamily: "System",
             textMonthFontFamily: "System",
             textDayHeaderFontFamily: "System",
@@ -85,7 +142,7 @@ export default function Timetable() {
             height: 370,
             borderRadius: 16,
           }}
-          current={"2024-06-10"}
+          current={result[0] || startDate.toISOString().slice(0, 10)}
           onDayPress={(day) => {
             console.log("selected day", day);
           }}

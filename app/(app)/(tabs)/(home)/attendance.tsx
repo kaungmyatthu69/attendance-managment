@@ -5,18 +5,60 @@ import { Pressable } from "@/components/ui/pressable";
 import { VStack } from "@/components/ui/vstack";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
-import React, { useState } from "react";
-import { Text, View } from "react-native";
+import {
+  CalendarDays,
+  ChevronLeft,
+  Clock,
+  MapPin,
+  User,
+} from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const tabs = [
   { key: "all", label: "All" },
   { key: "absence", label: "Absence" },
 ];
 
+const startDate = new Date("2025-02-01");
+const endDate = new Date("2025-03-20");
+const weekdays = ["Monday", "Tuesday", "Wednesday"];
+const absenceDate = ["2025-02-10", "2025-02-11", "2025-02-12"];
 export default function Attendance() {
   const [activeTab, setActiveTab] = useState("all");
-
+  const [data,setData] = useState([])
+  const result = [];
+  const dayNameToNumber: Record<string, number> = {
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+  };
+  const targetDays = new Set(
+    weekdays.map((day) => dayNameToNumber[day as keyof typeof dayNameToNumber])
+  );
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    if (targetDays.has(d.getDay())) {
+      const dayName = Object.keys(dayNameToNumber).find(
+        (key) => dayNameToNumber[key] === d.getDay()
+      );
+      result.push({
+        date: new Date(d).toISOString().slice(0, 10),
+        day: dayName,
+      });
+    }
+  }
+  useEffect(()=>{
+    if(activeTab !== 'all'){
+    const filteredResult = result.filter(day => absenceDate.includes(day.date));
+    setData(filteredResult);
+    }else{
+      setData(result)
+    }
+  },[activeTab])
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <VStack space="md" className="p-5" style={{ flex: 1 }}>
@@ -28,12 +70,15 @@ export default function Attendance() {
             <ChevronLeft />
             <Text>Back</Text>
           </Pressable>
-          
-            <Text className="text-lg font-bold text-center absolute left-1/2 -translate-x-1/2">
-              Attendance
-            </Text>
+
+          <Text className="text-lg font-bold text-center absolute left-1/2 -translate-x-1/2">
+            Attendance
+          </Text>
         </HStack>
-        <Box className="flex-row bg-gray-200 shadow-xs   rounded-xl m-4 p-1">
+        <HStack className="mt-6">
+          <Text>Percentage of attendance - 90%</Text>
+        </HStack>
+        <Box className="flex-row bg-gray-200 shadow-xs rounded-xl m-4 p-1">
           {tabs.map((tab) => (
             <Pressable
               key={tab.key}
@@ -51,37 +96,53 @@ export default function Attendance() {
               >
                 {tab.label}
               </Text>
-              {activeTab === tab.key && (
+              {/* {activeTab === tab.key && (
                 <View className="absolute left-5 right-5 bottom-1 h-1 rounded bg-primary-960" />
-              )}
+              )} */}
             </Pressable>
           ))}
         </Box>
         <Box style={{ flex: 1 }}>
           <FlashList
             showsVerticalScrollIndicator={false}
-            data={Array.from({ length: 5 })}
-            renderItem={({ item }) => (
-              <Card className="mt-3">
-                <VStack space="xs">
-                  <HStack className="justify-between items-center ">
-                    <Text className="text-lg font-semibold">Class1</Text>
-                    <Text>Daw Than Than Soe</Text>
-                  </HStack>
-                  <Text className="text-primary-960">Yangon , Hleden</Text>
+            data={data}
+            renderItem={({ item, index }) => (
+              <Card className="mt-3  ">
+                <VStack space="md">
+                  <VStack space="md">
+                    <Text className="text-lg font-semibold">Class 1</Text>
+                    <HStack space="md" className="flex items-center">
+                      <User />
+                      <Text>Daw Than Than Soe</Text>
+                    </HStack>
+                  </VStack>
                   <HStack space="md">
-                    <Text>7:00</Text>
-                    <Text>-</Text>
-                    <Text>8:00</Text>
+                    <MapPin />
+                    <Text >Yangon , Hleden</Text>
+                  </HStack>
+                  <HStack space="md">
+                    <Clock />
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      7:00
+                    </Text>
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      -
+                    </Text>
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      8:00
+                    </Text>
                   </HStack>
                   <HStack space="sm">
-                    <Text>Mon</Text>
-                    <Text>-</Text>
-                    <Text>Tue</Text>
-                    <Text>-</Text>
-                    <Text>Wed</Text>
-                    <Text>-</Text>
-                    <Text>Thu</Text>
+                    <CalendarDays />
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      {item.day}
+                    </Text>
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      -
+                    </Text>
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      {item.date}
+                    </Text>
                   </HStack>
                 </VStack>
               </Card>

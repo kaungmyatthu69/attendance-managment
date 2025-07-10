@@ -6,8 +6,14 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
+import {
+  CalendarDays,
+  ChevronLeft,
+  Clock,
+  MapPin,
+  User,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft } from "lucide-react-native";
 export default function Classrooms() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -28,20 +34,28 @@ export default function Classrooms() {
           <FlashList
             showsVerticalScrollIndicator={false}
             data={Array.from({ length: 5 })}
-            renderItem={({ item }) => (
-              <Card className="mt-3">
-                <VStack space="xs">
-                  <HStack className="justify-between items-center ">
-                    <Text className="text-lg font-semibold">Class1</Text>
-                    <Text>Daw Than Than Soe</Text>
+            renderItem={({ item , index }) => (
+              <Card className="mt-3  space-y-4">
+                <VStack space="md">
+                  <VStack space="md" className="justify-between  ">
+                    <Text className="text-lg font-semibold">Class {index+1}</Text>
+                    <HStack space="md">
+                      <User />
+                      <Text>Daw Than Than Soe</Text>
+                    </HStack>
+                  </VStack>
+                  <HStack space="sm">
+                    <MapPin />
+                    <Text>Yangon , Hleden</Text>
                   </HStack>
-                  <Text className="text-primary-960">Yangon , Hleden</Text>
                   <HStack space="md">
+                    <Clock />
                     <Text>7:00</Text>
                     <Text>-</Text>
                     <Text>8:00</Text>
                   </HStack>
                   <HStack space="sm">
+                    <CalendarDays />
                     <Text>Mon</Text>
                     <Text>-</Text>
                     <Text>Tue</Text>

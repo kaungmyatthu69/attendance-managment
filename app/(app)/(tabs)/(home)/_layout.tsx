@@ -7,6 +7,7 @@ export default function HomeLayout() {
       <Stack.Screen name="classrooms" options={{ headerShown: false }} />
       <Stack.Screen name="timetable" options={{ headerShown: false }} />
       <Stack.Screen name="attendance" options={{ headerShown: false }} />
+      <Stack.Screen name="currentClass" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -33,11 +33,11 @@ export default function CustomTabBar({
           <IconSymbol
             name="house.fill"
             size={28}
-            color={state.index === 0 ? "#2563eb" : "#B0B0B0"}
+            color={state.index === 0 ? "#2C7fff" : "#B0B0B0"}
           />
           <Text
             className={`mt-1 text-xs ${
-              state.index === 0 ? "text-[#2563eb] font-bold" : "text-gray-400"
+              state.index === 0 ? "text-[#2C7fff] font-bold" : "text-gray-400"
             }`}
           >
             Home
@@ -53,11 +53,11 @@ export default function CustomTabBar({
           <IconSymbol
             name="person.fill"
             size={28}
-            color={state.index === 2 ? "#2563eb" : "#B0B0B0"}
+            color={state.index === 1 ? "#2C7fff" : "#B0B0B0"}
           />
           <Text
             className={`mt-1 text-xs ${
-              state.index === 2 ? "text-[#2563eb] font-bold" : "text-gray-400"
+              state.index === 1 ? "text-[#2C7fff] font-bold" : "text-gray-400"
             }`}
           >
             Profile
@@ -66,7 +66,7 @@ export default function CustomTabBar({
       </Box>
       {/* Floating Action Button */}
       <Pressable
-        className="absolute -top-8 left-1/2 backdrop-blur-md -translate-x-1/2 bg-[#2563eb] rounded-full w-20 h-20 items-center justify-center shadow-xl "
+        className="absolute -top-8 left-1/2 backdrop-blur-md -translate-x-1/2 bg-[#2C7fff] rounded-full w-20 h-20 items-center justify-center shadow-xl "
         style={{ elevation: 12 }}
         onPress={() => navigation.navigate(state.routes[2].name)}
       >
