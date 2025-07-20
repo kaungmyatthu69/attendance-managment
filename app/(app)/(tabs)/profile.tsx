@@ -12,8 +12,11 @@ import { useSession } from "@/provider/ctx";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useProfile } from "@/hooks/useProfile";
 
-export default function TabTwoScreen() {
+export default function Profile() {
+  const {data:userData} = useProfile()
+  console.log('userData',userData)
   const { signOut } = useSession();
   const handleLogout = async() => {
     await signOut();
@@ -44,10 +47,10 @@ export default function TabTwoScreen() {
               {/* <AvatarFallbackText>Kaung Myat</AvatarFallbackText> */}
             </Avatar>
             <Text className="text-lg font-bold text-primary-960">
-              Kaung Myat
+              {userData?.name}
             </Text>
             <Text className="text-gray-400 text-sm font-semibold">
-              Student Id: 12345
+             Status: {userData?.status}
             </Text>
           </VStack>
         </Box>
@@ -56,17 +59,17 @@ export default function TabTwoScreen() {
             <Text className="text-lg font-bold">Personal Information</Text>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">Email</Text>
-              <Text className="text-gray-400 text-sm">Kaung@gmail.com</Text>
+              <Text className="text-gray-400 text-sm">{userData?.email}</Text>
             </VStack>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">Phone</Text>
-              <Text className="text-gray-400 text-sm">+95 09788999</Text>
+              <Text className="text-gray-400 text-sm">{userData?.phone}</Text>
             </VStack>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">
                 Address
               </Text>
-              <Text className="text-gray-400 text-sm">Yangon</Text>
+              <Text className="text-gray-400 text-sm">{userData?.address}</Text>
             </VStack>
             <Divider className="my-2" />
             <Text className="text-lg font-bold">Settings</Text>

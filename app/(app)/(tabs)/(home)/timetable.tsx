@@ -3,36 +3,42 @@ import { HStack } from "@/components/ui/hstack";
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { useTimeTable } from "@/hooks/useTimeTable";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 import { ChevronLeft } from "lucide-react-native";
+import { useEffect, useRef, useState } from "react";
 import { Calendar } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const startDate = new Date("2025-02-01");
-const endDate = new Date("2025-03-20");
-const weekdays = ["Monday", "Tuesday", "Wednesday"];
-
+type Class = {
+  class_id: string;
+  class_name: string;
+  dates: string[];
+};
 export default function Timetable() {
-  const result = [];
-  const dayNameToNumber: Record<string, number> = {
-    Sunday: 0,
-    Monday: 1,
-    Tuesday: 2,
-    Wednesday: 3,
-    Thursday: 4,
-    Friday: 5,
-    Saturday: 6,
-  };
-  const targetDays = new Set(
-    weekdays.map((day) => dayNameToNumber[day as keyof typeof dayNameToNumber])
-  );
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    if (targetDays.has(d.getDay())) {
-      result.push(new Date(d).toISOString().slice(0, 10)); // YYYY-MM-DD
-    }
-  }
+  const { data: timeTable, isLoading } = useTimeTable();
+  const animationRef = useRef<LottieView>(null);
+  const [dates, setDates] = useState<string[]>([]);
+  const [classes, setClassess] = useState<Class[]>([]);
+  const [currentClass, setCurrentClass] = useState<Class | null>(null);
 
-  // Group result dates by consecutive weekday sequence in 'weekdays'
+  // Helper function to check if two dates are consecutive
+  const areConsecutiveDates = (date1: string, date2: string): boolean => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    const diffTime = Math.abs(d2.getTime() - d1.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays === 1;
+  };
+
+  // Helper function to format date to YYYY-MM-DD
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
+  };
+
+  // Group consecutive dates
   const markedDates: {
     [key: string]: {
       color: string;
@@ -42,42 +48,73 @@ export default function Timetable() {
     };
   } = {};
 
-  let group: string[] = [];
-  for (let i = 0; i < result.length; i++) {
-    group.push(result[i]);
-    const currentDate = new Date(result[i]);
-    const nextDate = i + 1 < result.length ? new Date(result[i + 1]) : null;
-    const currentWeekdayIdx = weekdays.indexOf(
-      Object.keys(dayNameToNumber).find(
-        (k) =>
-          dayNameToNumber[k as keyof typeof dayNameToNumber] ===
-          currentDate.getDay()
-      ) || ""
+  if (dates.length > 0) {
+    // Sort dates to ensure they're in chronological order
+    const sortedDates = [...dates].sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
     );
-    const nextWeekdayIdx =
-      nextDate !== null
-        ? weekdays.indexOf(
-            Object.keys(dayNameToNumber).find(
-              (k) =>
-                dayNameToNumber[k as keyof typeof dayNameToNumber] ===
-                nextDate.getDay()
-            ) || ""
-          )
-        : -1;
 
-    // If next weekday is not the next in sequence in your weekdays array, or last date, close group
-    if (nextDate === null || nextWeekdayIdx !== currentWeekdayIdx + 1) {
-      group.forEach((date, idx) => {
-        markedDates[date] = {
-          color: "#2C7fff",
-          textColor: "white",
-          ...(idx === 0 && { startingDay: true }),
-          ...(idx === group.length - 1 && { endingDay: true }),
-        };
-      });
-      group = [];
+    let currentGroup: string[] = [];
+
+    for (let i = 0; i < sortedDates.length; i++) {
+      const currentDate = formatDate(sortedDates[i]);
+      const nextDate =
+        i + 1 < sortedDates.length ? formatDate(sortedDates[i + 1]) : null;
+
+      currentGroup.push(currentDate);
+
+      // Check if next date is consecutive or if this is the last date
+      if (nextDate === null || !areConsecutiveDates(currentDate, nextDate)) {
+        // Process the current group
+        currentGroup.forEach((date, idx) => {
+          markedDates[date] = {
+            color: "#2C7fff",
+            textColor: "white",
+            ...(idx === 0 && { startingDay: true }),
+            ...(idx === currentGroup.length - 1 && { endingDay: true }),
+          };
+        });
+
+        // Reset group for next sequence
+        currentGroup = [];
+      }
     }
   }
+
+  useEffect(() => {
+    console.log("useEffect triggered with timeTable:", timeTable);
+    console.log("isLoading:", isLoading);
+    console.log("timeTable.data:", timeTable?.data);
+    console.log("timeTable structure:", JSON.stringify(timeTable, null, 2));
+
+    if (timeTable && timeTable.data) {
+      if (Array.isArray(timeTable.data) && timeTable.data.length > 0) {
+        const firstClass = timeTable.data[0];
+        console.log("First class object:", firstClass);
+        console.log("First class keys:", Object.keys(firstClass));
+
+        if (firstClass && firstClass.dates) {
+          setDates(firstClass.dates);
+          setClassess(timeTable.data);
+          // Auto-select the first class
+          setCurrentClass(timeTable.data[0]);
+        } else {
+          console.log("firstClass.dates is missing:", firstClass);
+        }
+      } else {
+        console.log("timeTable.data is not an array or is empty");
+      }
+    } else {
+      console.log("timeTable or timeTable.data is null/undefined");
+    }
+  }, [timeTable, isLoading]);
+
+  // Update dates when currentClass changes
+  useEffect(() => {
+    if (currentClass && currentClass.dates) {
+      setDates(currentClass.dates);
+    }
+  }, [currentClass]);
 
   return (
     <SafeAreaView className="p-5" style={{ flex: 1 }}>
@@ -95,59 +132,122 @@ export default function Timetable() {
           </Box>
         </HStack>
       </VStack>
-      <HStack className="mt-10">
-        <Text className=" font-semibold text-lg">Pre-Intermediate Class </Text>
+
+      {isLoading && (
+        <Box className="flex-1 justify-center items-center">
+          <LottieView
+            ref={animationRef}
+            source={require("@/assets/lotties/Loading.json")}
+            autoPlay
+            loop={true}
+            style={{ width: 200, height: 200 }}
+          />
+        </Box>
+      )}
+
+      {!isLoading && classes.length === 0 && (
+        <Box className="flex-1 justify-center items-center">
+          <Text>No classes found</Text>
+        </Box>
+      )}
+
+      {!isLoading && classes.length > 0 && (
+        <>
+          <FlashList
+            className=" my-10"
+            data={classes}
+            estimatedItemSize={250}
+            showsHorizontalScrollIndicator={false}
+            horizontal={true}
+            extraData={currentClass?.class_id}
+            renderItem={({ item }) => {
+              // More robust comparison that handles different types and formats
+              const currentId = String(currentClass?.class_id || "").trim();
+              const itemId = String(item.class_id || "").trim();
+              const isSelected = currentId === itemId && currentId !== "";
+              
+              return (
+                <Pressable
+                  key={item.class_id}
+                  className={`px-6 py-3 rounded-full mr-3 ${
+                    isSelected ? "bg-blue-500" : "bg-white"
+                  }`}
+                  onPress={() => {
+                    setCurrentClass(item);
+                  }}
+                >
+                  <Text
+                    className={`font-medium text-sm ${
+                      isSelected ? "text-white" : "text-gray-700"
+                    }`}
+                  >
+                    {item.class_name ||
+                      "No Name"}
+                  </Text>
+                </Pressable>
+              );
+            }}
+          />
+        </>
+      )}
+
+      <HStack className="">
+        <Text className="font-semibold text-lg">
+          {currentClass?.class_name || "Select a Class"}
+        </Text>
       </HStack>
-      <Box
-        style={{
-          marginTop: 40,
-          borderRadius: 16,
-          overflow: "hidden",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}
-      >
-        <Calendar
-          markingType={"period"}
-          markedDates={markedDates}
-          theme={{
-            backgroundColor: "#2C7fff",
-            calendarBackground: "#f7f7f7",
-            textSectionTitleColor: "#2C7fff",
-            selectedDayBackgroundColor: "#2C7fff",
-            selectedDayTextColor: "#2C7fff",
-            todayTextColor: "#ff6347",
-            dayTextColor: "#2C7fff",
-            textDisabledColor: "#2C7fff",
-            dotColor: "#00adf5",
-            selectedDotColor: "#ffffff",
-            arrowColor: "#2C7fff",
-            monthTextColor: "#2C7fff",
-            indicatorColor: "#2C7fff",
-            textDayFontFamily: "System",
-            textMonthFontFamily: "System",
-            textDayHeaderFontFamily: "System",
-            textDayFontWeight: "400",
-            textMonthFontWeight: "bold",
-            textDayHeaderFontWeight: "400",
-            textDayFontSize: 16,
-            textMonthFontSize: 18,
-            textDayHeaderFontSize: 14,
-          }}
+      {dates.length > 0 && (
+        <Box
           style={{
-            borderWidth: 0,
-            height: 370,
+            marginTop: 40,
             borderRadius: 16,
+            overflow: "hidden",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
           }}
-          current={result[0] || startDate.toISOString().slice(0, 10)}
-          onDayPress={(day) => {
-            console.log("selected day", day);
-          }}
-        />
-      </Box>
+        >
+          <Calendar
+            markingType={"period"}
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: "#2C7fff",
+              calendarBackground: "#f7f7f7",
+              textSectionTitleColor: "#2C7fff",
+              selectedDayBackgroundColor: "#2C7fff",
+              selectedDayTextColor: "#2C7fff",
+              todayTextColor: "#ff6347",
+              dayTextColor: "#2C7fff",
+              textDisabledColor: "#2C7fff",
+              dotColor: "#00adf5",
+              selectedDotColor: "#ffffff",
+              arrowColor: "#2C7fff",
+              monthTextColor: "#2C7fff",
+              indicatorColor: "#2C7fff",
+              textDayFontFamily: "System",
+              textMonthFontFamily: "System",
+              textDayHeaderFontFamily: "System",
+              textDayFontWeight: "400",
+              textMonthFontWeight: "bold",
+              textDayHeaderFontWeight: "400",
+              textDayFontSize: 16,
+              textMonthFontSize: 18,
+              textDayHeaderFontSize: 14,
+            }}
+            style={{
+              borderWidth: 0,
+              height: 370,
+              borderRadius: 16,
+            }}
+            current={dates[0]}
+            onDayPress={(day) => {
+              console.log("selected day", day);
+            }}
+          />
+        </Box>
+      )}
     </SafeAreaView>
   );
 }

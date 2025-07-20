@@ -5,14 +5,20 @@ import { Pressable } from "@/components/ui/pressable";
 import { VStack } from "@/components/ui/vstack";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
+import { useGetAllAttendances } from "@/hooks/useAttendance";
+import NodataSVG from "@/assets/images/nodata.svg";
 import {
   CalendarDays,
   ChevronLeft,
   Clock,
   MapPin,
   User,
+  CircleCheck,
+  CalendarCheck,
+  Info,
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useRef } from "react";
 import { Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const tabs = [
@@ -20,45 +26,38 @@ const tabs = [
   { key: "absence", label: "Absence" },
 ];
 
-const startDate = new Date("2025-02-01");
-const endDate = new Date("2025-03-20");
-const weekdays = ["Monday", "Tuesday", "Wednesday"];
-const absenceDate = ["2025-02-10", "2025-02-11", "2025-02-12"];
 export default function Attendance() {
   const [activeTab, setActiveTab] = useState("all");
-  const [data,setData] = useState([])
-  const result = [];
-  const dayNameToNumber: Record<string, number> = {
-    Sunday: 0,
-    Monday: 1,
-    Tuesday: 2,
-    Wednesday: 3,
-    Thursday: 4,
-    Friday: 5,
-    Saturday: 6,
-  };
-  const targetDays = new Set(
-    weekdays.map((day) => dayNameToNumber[day as keyof typeof dayNameToNumber])
-  );
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    if (targetDays.has(d.getDay())) {
-      const dayName = Object.keys(dayNameToNumber).find(
-        (key) => dayNameToNumber[key] === d.getDay()
-      );
-      result.push({
-        date: new Date(d).toISOString().slice(0, 10),
-        day: dayName,
-      });
-    }
-  }
+  const  {data: attendances , isLoading} = useGetAllAttendances();
+  const [allAttendances, setAllAttendances] = useState([]);
+    const [currentClass, setCurrentClass] = useState<any | null>(null);
+  const [classSessions,setClassSession] = useState([])
+  const animationRef = useRef<LottieView>(null);
+
   useEffect(()=>{
-    if(activeTab !== 'all'){
-    const filteredResult = result.filter(day => absenceDate.includes(day.date));
-    setData(filteredResult);
-    }else{
-      setData(result)
+    if(attendances && attendances.data.records){
+      setAllAttendances(attendances.data.records);
+      setCurrentClass(attendances.data.records[0] || null);
+      setClassSession(attendances.data.records[0]?.sessions || []);
     }
-  },[activeTab])
+  },[attendances,isLoading])
+
+  useEffect(()=>{
+    if(activeTab === "all"){
+      setClassSession(currentClass?.sessions || []);  
+    }
+    else if(activeTab === "absence"){
+      const absenceSessions = currentClass?.sessions?.filter((session: any) => 
+        session.status === "absent"
+      ) || [];
+      setClassSession(absenceSessions);
+    }
+  },[
+    currentClass, activeTab, allAttendances,
+  ])
+
+  
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <VStack space="md" className="p-5" style={{ flex: 1 }}>
@@ -75,8 +74,47 @@ export default function Attendance() {
             Attendance
           </Text>
         </HStack>
-        <HStack className="mt-6">
-          <Text>Percentage of attendance - 90%</Text>
+
+        {!isLoading && allAttendances.length > 0 && (
+          <FlashList
+            className=" mt-10 mb-5"
+            data={allAttendances}
+            estimatedItemSize={50}
+            showsHorizontalScrollIndicator={false}
+            horizontal={true}
+            extraData={currentClass}
+            renderItem={({ item }) => {
+              // More robust comparison that handles different types and formats
+              const currentId = String(currentClass?.class_id || "").trim();
+              const itemId = String(item.class_id || "").trim();
+              const isSelected = currentId === itemId && currentId !== "";
+              return (
+                <Pressable
+                  key={item.class_id}
+                  className={`px-6 py-3 rounded-full mr-3 transition-colors duration-150  ease-out ${
+                    isSelected ? "bg-blue-500" : "bg-white"
+                  }`}
+                  onPress={() => {
+                    setCurrentClass(item);
+                    setActiveTab("all"); // Reset to "all" tab when changing class
+                  }}
+                >
+                  <Text
+                    className={`font-medium text-sm ${
+                      isSelected ? "text-white" : "text-gray-700"
+                    }`}
+                  >
+                    {item.class_name}
+                  </Text>
+                </Pressable>
+              );
+            }}
+          />
+        )}
+        <HStack>
+          <Text>
+            Percentage of attendance - {currentClass?.attendance_percentage}%
+          </Text>
         </HStack>
         <Box className="flex-row bg-gray-200 shadow-xs rounded-xl m-4 p-1">
           {tabs.map((tab) => (
@@ -102,46 +140,67 @@ export default function Attendance() {
             </Pressable>
           ))}
         </Box>
+        {isLoading && (
+          <Box className="flex-1 items-center justify-center">
+            <LottieView
+              ref={animationRef}
+              source={require("@/assets/lotties/Loading.json")}
+              autoPlay
+              loop={true}
+              style={{ width: 200, height: 200 }}
+            />
+          </Box>
+        )}
         <Box style={{ flex: 1 }}>
+          {classSessions.length === 0 && !isLoading && (
+            <Box className="flex-1 items-center mt-5 justify-center">
+              <NodataSVG width={200} height={200} />
+              <Text className="text-gray-500 mt-2">
+                No attendance records found
+              </Text>
+            </Box>
+          )}
           <FlashList
             showsVerticalScrollIndicator={false}
-            data={data}
+            data={classSessions}
             renderItem={({ item, index }) => (
               <Card className="mt-3  ">
                 <VStack space="md">
                   <VStack space="md">
-                    <Text className="text-lg font-semibold">Class 1</Text>
+                    <Text className="text-lg font-semibold">
+                      {currentClass.class_name}
+                    </Text>
                     <HStack space="md" className="flex items-center">
                       <User />
-                      <Text>Daw Than Than Soe</Text>
+                      <Text>{currentClass.teacher_name}</Text>
                     </HStack>
                   </VStack>
-                  <HStack space="md">
+                  <HStack space="md" className="flex items-center">
                     <MapPin />
-                    <Text >Yangon , Hleden</Text>
+                    <Text>{currentClass.location}</Text>
                   </HStack>
-                  <HStack space="md">
+                  <HStack space="md" className="flex items-center">
                     <Clock />
                     <Text className={activeTab !== "all" ? "text-red-500" : ""}>
-                      7:00
-                    </Text>
-                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
-                      -
-                    </Text>
-                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
-                      8:00
+                      {item.time}
                     </Text>
                   </HStack>
-                  <HStack space="sm">
-                    <CalendarDays />
-                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
-                      {item.day}
-                    </Text>
-                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
-                      -
-                    </Text>
+                  <HStack space="sm" className="flex items-center">
+                    <CircleCheck />
                     <Text className={activeTab !== "all" ? "text-red-500" : ""}>
                       {item.date}
+                    </Text>
+                  </HStack>
+                  <HStack space="sm" className="flex items-center">
+                    <CalendarDays />
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      {item.day_of_week}
+                    </Text>
+                  </HStack>
+                  <HStack space="sm" className="flex items-center">
+                    <CalendarCheck />
+                    <Text className={activeTab !== "all" ? "text-red-500" : ""}>
+                      {item.status}
                     </Text>
                   </HStack>
                 </VStack>

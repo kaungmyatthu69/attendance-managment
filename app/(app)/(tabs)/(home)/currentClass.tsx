@@ -16,7 +16,10 @@ import {
 } from "lucide-react-native";
 import TimeManagement from "@/assets/images/Timemanagement-pana.svg"
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FlashList } from "@shopify/flash-list";
+import { useGetCurrentClasses } from "@/hooks/useClasses";
 export default function CurrentClass() {
+  const {data,isLoading} = useGetCurrentClasses();
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <VStack space="md" className="p-5" style={{ flex: 1 }}>
@@ -34,52 +37,58 @@ export default function CurrentClass() {
             </Text>
           </Box>
         </HStack>
-        <Box className="flex-1 items-center justify-center">
-          {/* <Image
-            source={require("@/assets/images/Timemanagement-pana.png")}
-            alt="image"
-            size="2xl"
-          /> */}
-          <TimeManagement width={300} height={200} />
-          
-          <Card className="space-y-4 mt-10 w-full">
-            <VStack space="md">
-              <VStack space="md" className="justify-between">
-                <Text className="text-lg font-semibold">Class 1</Text>
-                <HStack space="md">
-                  <User />
-                  <Text>Daw Than Than Soe</Text>
-                </HStack>
-              </VStack>
-              <HStack space="sm">
-                <MapPin />
-                <Text>Yangon , Hleden</Text>
-              </HStack>
-              <HStack space="md">
-                <Clock />
-                <Text>7:00</Text>
-                <Text>-</Text>
-                <Text>8:00</Text>
-              </HStack>
-              <HStack space="sm">
-                <CalendarDays />
-                <Text>Mon</Text>
-                <Text>-</Text>
-                <Text>Tue</Text>
-                <Text>-</Text>
-                <Text>Wed</Text>
-                <Text>-</Text>
-                <Text>Thu</Text>
-              </HStack>
-              <HStack space="sm">
-                <CalendarFold />
-                <Text>01-07-2025</Text>
-                <Text>to</Text>
-                <Text>02-09-2025</Text>
-              </HStack>
-            </VStack>
-          </Card>
-        </Box>
+        {isLoading && (
+          <Box className="flex-1 items-center justify-center">
+            <Text>Loading...</Text>
+          </Box>
+        )}
+        {!isLoading && data.current_classes?.length === 0 && (
+          <Box className="flex-1 items-center justify-center">
+            <Text>No Classes Available</Text>
+          </Box>
+        )}
+        {!isLoading && data.current_classes?.length > 0 && (
+          <Box style={{ flex: 1 }}>
+            <FlashList
+              showsVerticalScrollIndicator={false}
+              data={data.current_classes}
+              renderItem={({ item, index }) => (
+                <Card className="space-y-4 mt-10 w-full">
+                  <VStack space="md">
+                    <VStack space="md" className="justify-between">
+                      <Text className="text-lg font-semibold">
+                        {item.class_name}
+                      </Text>
+                      <HStack space="md">
+                        <User />
+                        <Text>{item.teacher}</Text>
+                      </HStack>
+                    </VStack>
+                    <HStack space="sm">
+                      <MapPin />
+                      <Text>{item.location}</Text>
+                    </HStack>
+                    <HStack space="md">
+                      <Clock />
+                      <Text>{item.time}</Text>
+                    </HStack>
+                    <HStack space="sm">
+                      <CalendarDays />
+                      <Text>{item.day_of_week}</Text>
+                    </HStack>
+                    <HStack space="sm">
+                      <CalendarFold />
+                      <Text>{item.from_date}</Text>
+                      <Text>to</Text>
+                      <Text>{item.to_date}</Text>
+                    </HStack>
+                  </VStack>
+                </Card>
+              )}
+              estimatedItemSize={20}
+            />
+          </Box>
+        )}
       </VStack>
     </SafeAreaView>
   );

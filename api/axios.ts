@@ -1,8 +1,7 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import * as SecureStore from "expo-secure-store";
 
-// import { API_URL } from "@/config";
-const API_URL = 'http://localhost:1234'
+import { API_URL } from "@/config";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -10,76 +9,21 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-let isRefreshing = false;
-let failedRequestQueue: Array<{
-  resolve: () => void;
-  reject: (error: unknown) => void;
-}> = [];
-
-api.interceptors.request.use(async (config) => {
+api.interceptors.request.use(async (config: any) => {
   const token = await SecureStore.getItemAsync("token");
+  console.log('token',token)
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers = config.headers || {};
+    config.headers["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error?.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedRequestQueue.push({
-            resolve: () => resolve(api(originalRequest)),
-            reject,
-          });
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = await SecureStore.getItemAsync("refreshToken");
-        const randToken = await SecureStore.getItemAsync("randToken");
-
-        const { data } = await axios.post(
-          API_URL + "refresh-token",
-          { refreshToken, randToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer 123abc",
-            },
-          }
-        );
-
-        await SecureStore.setItemAsync("token", data.token);
-        await SecureStore.setItemAsync("refreshToken", data.refreshToken);
-        await SecureStore.setItemAsync("randToken", data.randToken);
-
-        api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
-
-        failedRequestQueue.forEach(({ resolve }) => resolve());
-        failedRequestQueue = [];
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        await SecureStore.deleteItemAsync("token");
-        await SecureStore.deleteItemAsync("refreshToken");
-        await SecureStore.deleteItemAsync("randToken");
-        await SecureStore.deleteItemAsync("session");
-        failedRequestQueue.forEach(({ reject }) => reject(refreshError));
-        failedRequestQueue = [];
-
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+  (response: AxiosResponse) => response,
+  async (error: any) => {
+    if (error.response && error.response.data) {
+      console.log("Global API error:", error.response.data.message);
     }
     return Promise.reject(error);
   }

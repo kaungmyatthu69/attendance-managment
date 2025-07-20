@@ -7,13 +7,13 @@ import { Card } from "@/components/ui/card";
 import { HStack } from "@/components/ui/hstack";
 import { Image } from "@/components/ui/image";
 import { Pressable } from "@/components/ui/pressable";
+import useUserStore from "@/store/userStore";
 import { BarcodeScanningResult, CameraView } from "expo-camera";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 // Static image map for dynamic usage
 // const imageMap = {
 //   Timetable: require("@/assets/images/Timetable.svg"),
@@ -62,7 +62,7 @@ const data = [
   },
 ];
 export default function HomeScreen() {
-  const [location, setLocation] = useState<Location.LocationObject | null>(
+  const [locations, setLocations] = useState<Location.LocationObject | null>(
     null
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -73,6 +73,15 @@ export default function HomeScreen() {
   const [showScanner, setShowScanner] = useState(false);
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
   const cameraRef = useRef(null);
+  const { setLocation } = useUserStore();
+
+  useEffect(() => {
+    if (locations) {
+      setLocation(
+        `${locations.coords.latitude}, ${locations.coords.longitude}`
+      );
+    }
+  }, [locations, setLocation]);
 
   useEffect(() => {
     (async () => {
@@ -82,14 +91,7 @@ export default function HomeScreen() {
         return;
       }
       let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await CameraView.requestCameraPermissionsAsync();
-      setHasCameraPermission(status === "granted");
+      setLocations(location);
     })();
   }, []);
 
@@ -103,8 +105,8 @@ export default function HomeScreen() {
   let locationText = "Waiting for location...";
   if (errorMsg) {
     locationText = errorMsg;
-  } else if (location) {
-    locationText = `Lat: ${location.coords.latitude}, Lon: ${location.coords.longitude}`;
+  } else if (locations) {
+    locationText = `Lat: ${locations?.coords.latitude}, Lon: ${locations?.coords.longitude}`;
   }
 
   if (showScanner) {
@@ -155,13 +157,6 @@ export default function HomeScreen() {
   };
   return (
     <SafeAreaView>
-      {/* <Text className="text-red-600">Attendance Tracker Home</Text>
-      <Text style={{ marginVertical: 10 }}>{locationText}</Text>
-      {barcodeData && <Text>Scanned: {barcodeData}</Text>}
-      <Button
-        title="Open Barcode Scanner"
-        onPress={() => setShowScanner(true)}
-      /> */}
       <HStack className="p-5">
         <Box className="mb-4 w-2/3  rounded-lg p-4">
           <Text className="text-lg font-bold">

@@ -1,5 +1,4 @@
-// import { API_URL } from "@/config";
-const API_URL = "http://localhost:1234";
+import { API_URL } from "@/config";
 export const fetchApi = async ({
   endPoint = "",
   method = "POST",
@@ -13,11 +12,13 @@ export const fetchApi = async ({
     body: method !== "GET" ? JSON.stringify(data) : undefined,
   };
   console.log("url", url);
+ 
   console.log("options", options);
 
   try {
     console.log("trying fetch api");
     const response = await fetch(url, options);
+    console.log('this response',response)
 
     if (!response.ok) {
       let errorMessage = "An error occurred please try again";

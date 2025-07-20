@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
@@ -24,38 +23,44 @@ import { useSession } from "@/provider/ctx";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = React.useState(false);
-  const { signIn } = useSession();
-  const [isLogin,setIsLogin] = useState(false);
+  const { signIn, signUp, isLoading, error, clearError } = useSession();
+  const [isLogin, setIsLogin] = useState(false);
 
   const handleState = () => {
     setShowPassword((showState) => !showState);
   };
 
-  // const register = () => {
-  //   signIn();
-  //   // Navigate after signing in. You may want to tweak this to ensure sign-in is
-  //   // successful before navigating.
-  //   router.replace("/");
-  // };
-
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      phone: "",
+      name:"",
+      email: "",
       password: "",
-      classcode:''
+      confirmPassword: "",
+      classCode: "",
     },
   });
 
-  const onSubmit = async (formState: any) => {
-    // Do something with the form state
-    console.log("Submitting form state:", formState);
-    await signIn(formState);
+  // Watch password field for confirmation validation
+  const password = watch("password");
 
-    router.replace("/");
+  const onSubmit = async (formState: any) => {
+    if (isLogin) {
+      delete formState.classCode;
+      delete formState.confirmPassword;
+      delete formState.name;
+    }
+    console.log("Submitting form state:", formState);
+
+    if (isLogin) {
+      await signIn(formState);
+    } else {
+      await signUp(formState);
+    }
   };
 
   return (
@@ -82,14 +87,63 @@ export default function SignIn() {
                 Sign {isLogin ? "in" : "up"} {"\n"}to your Account
               </Heading>
               <Text size="lg" className="font-semibold text-gray-500">
-                Enter your phone {isLogin ?'':',Class code '} and password  to {isLogin ? "login" : "sing up"}
+                Enter your email {isLogin ? "" : ",Class code "} and password to{" "}
+                {isLogin ? "login" : "sing up"}
               </Text>
             </VStack>
+
+            {/* Error Message Display */}
+            {error && (
+              <VStack
+                space="xs"
+                className="bg-red-50 p-3 rounded-lg border border-red-200"
+              >
+                <Text className="text-red-600 font-medium text-center">
+                  {error}
+                </Text>
+              </VStack>
+            )}
+
             <FormControl size="md">
+              {!isLogin && (
+                <VStack space="xs" className="mb-5">
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-lg font-semibold text-gray-500">
+                      Student Name
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Controller
+                    control={control}
+                    rules={{
+                      required: {
+                        value: true,
+                        message: "This is required.",
+                      },
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        className="h-16 rounded-lg border-gray-200 bg-white"
+                        size="xl"
+                      >
+                        <InputField
+                          placeholder="Enter your name"
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                        />
+                      </Input>
+                    )}
+                    name="name"
+                  />
+                  {errors.name && (
+                    <Text className="text-red-400">{errors.name.message}</Text>
+                  )}
+                </VStack>
+              )}
               <VStack space="xs">
                 <FormControlLabel>
                   <FormControlLabelText className="text-lg font-semibold text-gray-500">
-                    Phone Number
+                    Email
                   </FormControlLabelText>
                 </FormControlLabel>
                 <Controller
@@ -99,13 +153,9 @@ export default function SignIn() {
                       value: true,
                       message: "This is required.",
                     },
-                    minLength: {
-                      value: 7,
-                      message: "Phone number should be at least 7 digits.",
-                    },
                     pattern: {
-                      value: /^09[0-9]{9}$/,
-                      message: "Phone number should be numeric.",
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Invalid email format.",
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
@@ -114,19 +164,17 @@ export default function SignIn() {
                       size="xl"
                     >
                       <InputField
-                        placeholder="097******78"
+                        placeholder="Enter your email"
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
-                        inputMode="numeric"
-                        maxLength={12}
                       />
                     </Input>
                   )}
-                  name="phone"
+                  name="email"
                 />
-                {errors.phone && (
-                  <Text className="text-red-400">{errors.phone.message}</Text>
+                {errors.email && (
+                  <Text className="text-red-400">{errors.email.message}</Text>
                 )}
               </VStack>
               <VStack space="xs" className="mt-5">
@@ -138,7 +186,14 @@ export default function SignIn() {
                 <Controller
                   control={control}
                   rules={{
-                    required: true,
+                    required: {
+                      value: true,
+                      message: "Password is required.",
+                    },
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters.",
+                    },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
@@ -151,7 +206,6 @@ export default function SignIn() {
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
-                        maxLength={8}
                       />
                       <InputSlot className="pr-3" onPress={handleState}>
                         <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -165,13 +219,54 @@ export default function SignIn() {
                     {errors.password.message}
                   </Text>
                 )}
-
-                <FormControlHelper>
-                  <FormControlHelperText>
-                    Must be 8 digits.
-                  </FormControlHelperText>
-                </FormControlHelper>
               </VStack>
+              {!isLogin && (
+                <VStack space="xs" className="mt-5">
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-lg font-semibold text-gray-500">
+                      Confirm Password
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Controller
+                    control={control}
+                    rules={{
+                      required: {
+                        value: true,
+                        message: "Please confirm your password.",
+                      },
+                      validate: (value) => {
+                        if (value !== password) {
+                          return "Passwords do not match.";
+                        }
+                        return true;
+                      },
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input
+                        className="h-16 rounded-lg border-gray-200 bg-white"
+                        size="xl"
+                      >
+                        <InputField
+                          placeholder="********"
+                          type={showPassword ? "text" : "password"}
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                        />
+                        <InputSlot className="pr-3" onPress={handleState}>
+                          <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                        </InputSlot>
+                      </Input>
+                    )}
+                    name="confirmPassword"
+                  />
+                  {errors.confirmPassword && (
+                    <Text className="text-red-500">
+                      {errors.confirmPassword?.message}
+                    </Text>
+                  )}
+                </VStack>
+              )}
               {isLogin === false && (
                 <VStack space="xs" className="mt-5">
                   <FormControlLabel>
@@ -182,7 +277,10 @@ export default function SignIn() {
                   <Controller
                     control={control}
                     rules={{
-                      required: true,
+                      required: {
+                        value: true,
+                        message: "Class code is required.",
+                      },
                     }}
                     render={({ field: { onChange, onBlur, value } }) => (
                       <Input
@@ -198,19 +296,13 @@ export default function SignIn() {
                         />
                       </Input>
                     )}
-                    name="classcode"
+                    name="classCode"
                   />
-                  {errors.password && (
+                  {errors.classCode && (
                     <Text className="text-red-500">
-                      {errors.password.message}
+                      {errors.classCode?.message}
                     </Text>
                   )}
-
-                  <FormControlHelper>
-                    <FormControlHelperText>
-                      Must be 8 digits.
-                    </FormControlHelperText>
-                  </FormControlHelper>
                 </VStack>
               )}
             </FormControl>
@@ -218,27 +310,32 @@ export default function SignIn() {
             Forgot password ?
           </Text> */}
             <Button
-              className="h-16 rounded-lg bg-primary-960"
+              className={`h-16 rounded-lg ${
+                isLoading ? "bg-gray-400" : "bg-primary-960"
+              }`}
               onPress={handleSubmit(onSubmit)}
+              disabled={isLoading}
             >
               <ButtonText className="text-lg font-bold">
-                {isLogin ? "Log In" : "Sing Up"}
+                {isLoading ? "Loading..." : isLogin ? "Log In" : "Sign Up"}
               </ButtonText>
             </Button>
             <Pressable
               onPress={() => {
                 setIsLogin((value) => !value);
+                error && clearError(); // Clear error when switching
               }}
+              disabled={isLoading}
             >
               {!isLogin ? (
                 <Text className="text-center">
                   Already have account?
-                  <Text className="text-primary-960">Sing In</Text>
+                  <Text className="text-primary-960">Sign In</Text>
                 </Text>
               ) : (
                 <Text className="text-center">
                   Don't have account?
-                  <Text className="text-primary-960">Sing Up</Text>
+                  <Text className="text-primary-960">Sign Up</Text>
                 </Text>
               )}
             </Pressable>

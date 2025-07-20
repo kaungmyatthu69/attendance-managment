@@ -12,9 +12,13 @@ import {
   Clock,
   MapPin,
   User,
+  CalendarFold,
 } from "lucide-react-native";
+import { useGetAllClasses } from "@/hooks/useClasses";
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function Classrooms() {
+  const {data , isLoading} = useGetAllClasses();
+  
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <VStack space="md" className="p-5" style={{ flex: 1 }}>
@@ -30,46 +34,58 @@ export default function Classrooms() {
             <Text className="text-lg font-bold text-center">Classrooms</Text>
           </Box>
         </HStack>
-        <Box style={{ flex: 1 }}>
-          <FlashList
-            showsVerticalScrollIndicator={false}
-            data={Array.from({ length: 5 })}
-            renderItem={({ item , index }) => (
-              <Card className="mt-3  space-y-4">
-                <VStack space="md">
-                  <VStack space="md" className="justify-between  ">
-                    <Text className="text-lg font-semibold">Class {index+1}</Text>
+        {isLoading && (
+          <Box className="flex-1 items-center justify-center">
+            <Text>Loading...</Text>
+          </Box>
+        )}
+        {!isLoading && data.all_classes?.length === 0 && (
+          <Box className="flex-1 items-center justify-center">
+            <Text>No Classes Available</Text>
+          </Box>
+        )}
+        {!isLoading && data.all_classes?.length > 0 && (
+          <Box style={{ flex: 1 }}>
+            <FlashList
+              showsVerticalScrollIndicator={false}
+              data={data.all_classes}
+              renderItem={({ item, index }) => (
+                <Card className="mt-3  space-y-4">
+                  <VStack space="md">
+                    <VStack space="md" className="justify-between  ">
+                      <Text className="text-lg font-semibold">
+                        {item.class_name || `Class ${index + 1}`}
+                      </Text>
+                      <HStack space="md">
+                        <User />
+                        <Text>{item.teacher}</Text>
+                      </HStack>
+                    </VStack>
+                    <HStack space="sm">
+                      <MapPin />
+                      <Text>{item.location}</Text>
+                    </HStack>
                     <HStack space="md">
-                      <User />
-                      <Text>Daw Than Than Soe</Text>
+                      <Clock />
+                      <Text>{item.time}</Text>
+                    </HStack>
+                    <HStack space="sm">
+                      <CalendarDays />
+                      <Text>{item.day_of_week}</Text>
+                    </HStack>
+                    <HStack space="sm">
+                      <CalendarFold />
+                      <Text>{item.from_date}</Text>
+                      <Text>to</Text>
+                      <Text>{item.to_date}</Text>
                     </HStack>
                   </VStack>
-                  <HStack space="sm">
-                    <MapPin />
-                    <Text>Yangon , Hleden</Text>
-                  </HStack>
-                  <HStack space="md">
-                    <Clock />
-                    <Text>7:00</Text>
-                    <Text>-</Text>
-                    <Text>8:00</Text>
-                  </HStack>
-                  <HStack space="sm">
-                    <CalendarDays />
-                    <Text>Mon</Text>
-                    <Text>-</Text>
-                    <Text>Tue</Text>
-                    <Text>-</Text>
-                    <Text>Wed</Text>
-                    <Text>-</Text>
-                    <Text>Thu</Text>
-                  </HStack>
-                </VStack>
-              </Card>
-            )}
-            estimatedItemSize={20}
-          />
-        </Box>
+                </Card>
+              )}
+              estimatedItemSize={20}
+            />
+          </Box>
+        )}
       </VStack>
     </SafeAreaView>
   );
