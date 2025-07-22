@@ -8,7 +8,7 @@ type ScanProps = {
 }
 
 export const scanQr = async (body:ScanProps) => {
-  console.log('body data',body)
+  
   const { data } = await api.post("attendance", body);
   return data;
 };

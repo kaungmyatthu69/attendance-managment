@@ -46,10 +46,10 @@ export default function Profile() {
               />
               {/* <AvatarFallbackText>Kaung Myat</AvatarFallbackText> */}
             </Avatar>
-            <Text className="text-lg font-bold text-primary-960">
+            <Text className="text-2xl font-bold text-primary-960">
               {userData?.name}
             </Text>
-            <Text className="text-gray-400 text-sm font-semibold">
+            <Text className="text-base font-semibold">
              Status: {userData?.status}
             </Text>
           </VStack>
@@ -59,17 +59,17 @@ export default function Profile() {
             <Text className="text-lg font-bold">Personal Information</Text>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">Email</Text>
-              <Text className="text-gray-400 text-sm">{userData?.email}</Text>
+              <Text className="text-gray-400 text-sm">{userData?.email ?? 'testing@gmail.com'}</Text>
             </VStack>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">Phone</Text>
-              <Text className="text-gray-400 text-sm">{userData?.phone}</Text>
+              <Text className="text-gray-400 text-sm">{userData?.phone ?? '+9578966544'}</Text>
             </VStack>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">
                 Address
               </Text>
-              <Text className="text-gray-400 text-sm">{userData?.address}</Text>
+              <Text className="text-gray-400 text-sm">{userData?.address ?? 'Yangon'}</Text>
             </VStack>
             <Divider className="my-2" />
             <Text className="text-lg font-bold">Settings</Text>

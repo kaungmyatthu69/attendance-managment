@@ -4,6 +4,7 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useState, type PropsWithChildren } from "react";
 import { router } from "expo-router";
+import useUserStore from "@/store/userStore";
 const AuthContext = createContext<{
   signIn: (formState: FormStateProps) => Promise<void>;
   signUp: (formState: FormStateProps) => Promise<void>;
@@ -23,7 +24,7 @@ const AuthContext = createContext<{
 });
 
 // This hook can be used to access the user info.
-export function useSession() {
+export function   useSession() {
   const value = useContext(AuthContext);
   if (process.env.NODE_ENV !== "production") {
     if (!value) {
@@ -45,13 +46,19 @@ type FormStateProps = {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState("session");
   const [error, setError] = useState(null);
-
+  const  { setUser} = useUserStore()
   const signInMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       signInApi({ email, password }),
     onSuccess: async (data: any) => {
       console.log("Sign in success:", data);
       await SecureStore.setItemAsync("token", data.token);
+      setUser({
+        id:data.user.id,
+        name:data.user.name,
+        email:data.user.email
+      })
+      
       setSession("xxx");
        router.replace("/");
       // Optionally, you can reset the error state on successful sign-in
@@ -75,6 +82,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
       console.log("Sign up success:", data);
       await SecureStore.setItemAsync("token", data.token);
       setSession("xxx");
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+        });
 
     },
     onError: (error: any) => {

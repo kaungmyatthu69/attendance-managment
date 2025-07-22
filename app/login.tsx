@@ -64,7 +64,7 @@ export default function SignIn() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-5">
+    <SafeAreaView className="flex-1 bg-white px-5 py-4">
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

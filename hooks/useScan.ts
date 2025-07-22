@@ -5,7 +5,7 @@ export function useScan() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: any) => scanQr(body),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["attendances"] });
     },
   });

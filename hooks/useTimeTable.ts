@@ -6,7 +6,7 @@ export function useTimeTable() {
     queryKey: ["time-table"],
     queryFn: getTimeTable,
     refetchOnMount:true,
-    staleTime:60*1000,
+    // staleTime:60*1000,
     
   });
 }

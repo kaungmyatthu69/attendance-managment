@@ -165,7 +165,7 @@ export default function Timetable() {
               const currentId = String(currentClass?.class_id || "").trim();
               const itemId = String(item.class_id || "").trim();
               const isSelected = currentId === itemId && currentId !== "";
-              
+
               return (
                 <Pressable
                   key={item.class_id}
@@ -177,12 +177,11 @@ export default function Timetable() {
                   }}
                 >
                   <Text
-                    className={`font-medium text-sm ${
+                    className={`font-medium text-normal ${
                       isSelected ? "text-white" : "text-gray-700"
                     }`}
                   >
-                    {item.class_name ||
-                      "No Name"}
+                    {item.class_name || "No Name"}
                   </Text>
                 </Pressable>
               );
@@ -199,12 +198,12 @@ export default function Timetable() {
       {dates.length > 0 && (
         <Box
           style={{
-            marginTop: 40,
+            marginTop: 50,
             borderRadius: 16,
             overflow: "hidden",
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
+            shadowOpacity: 0.5,
             shadowRadius: 4,
             elevation: 3,
           }}
@@ -215,22 +214,22 @@ export default function Timetable() {
             theme={{
               backgroundColor: "#2C7fff",
               calendarBackground: "#f7f7f7",
-              textSectionTitleColor: "#2C7fff",
+              textSectionTitleColor: "#597384",
               selectedDayBackgroundColor: "#2C7fff",
               selectedDayTextColor: "#2C7fff",
               todayTextColor: "#ff6347",
-              dayTextColor: "#2C7fff",
-              textDisabledColor: "#2C7fff",
+              dayTextColor: "#597384",
+              textDisabledColor: "#d9e1e8",
               dotColor: "#00adf5",
               selectedDotColor: "#ffffff",
-              arrowColor: "#2C7fff",
-              monthTextColor: "#2C7fff",
-              indicatorColor: "#2C7fff",
+              arrowColor: "#597384",
+              monthTextColor: "#597384",
+              indicatorColor: "#597384",
               textDayFontFamily: "System",
               textMonthFontFamily: "System",
               textDayHeaderFontFamily: "System",
               textDayFontWeight: "400",
-              textMonthFontWeight: "bold",
+              textMonthFontWeight: "600",
               textDayHeaderFontWeight: "400",
               textDayFontSize: 16,
               textMonthFontSize: 18,
@@ -240,6 +239,10 @@ export default function Timetable() {
               borderWidth: 0,
               height: 370,
               borderRadius: 16,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.5,
+            shadowRadius: 4,
             }}
             current={dates[0]}
             onDayPress={(day) => {

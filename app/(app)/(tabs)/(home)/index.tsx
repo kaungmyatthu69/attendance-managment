@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { HStack } from "@/components/ui/hstack";
 import { Image } from "@/components/ui/image";
 import { Pressable } from "@/components/ui/pressable";
-import useUserStore from "@/store/userStore";
+import useUserStore, { getUser } from "@/store/userStore";
 import { BarcodeScanningResult, CameraView } from "expo-camera";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -74,7 +74,8 @@ export default function HomeScreen() {
   const [barcodeData, setBarcodeData] = useState<string | null>(null);
   const cameraRef = useRef(null);
   const { setLocation } = useUserStore();
-
+   
+  const user = useUserStore(getUser)
   useEffect(() => {
     if (locations) {
       setLocation(
@@ -158,13 +159,13 @@ export default function HomeScreen() {
   return (
     <SafeAreaView>
       <HStack className="p-5">
-        <Box className="mb-4 w-2/3  rounded-lg p-4">
-          <Text className="text-lg font-bold">
-            Welcome <Text className="text-primary-960">Kaung Myat !</Text>
+        <Box className="mb-4   rounded-lg p-4">
+          <Text className="text-2xl font-bold">
+            Welcome <Text className="text-primary-960">{user?.name} !</Text>
           </Text>
         </Box>
       </HStack>
-      <Box className="w-full p-5 flex-row flex-wrap justify-between mt-10 ">
+      <Box className="w-full p-5  flex-row items-center my-auto  flex-wrap justify-between mt-10">
         {data.map((item) => (
           <Pressable
             key={item.id}

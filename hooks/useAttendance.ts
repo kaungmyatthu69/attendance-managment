@@ -6,6 +6,7 @@ export function useGetAllAttendances() {
     queryKey: ["attendances"],
     queryFn: getAttendances,
     refetchOnMount: true,
-    staleTime: 60 * 1000,
+    enabled:true
+    // staleTime: 60 * 1000,
   });
 }

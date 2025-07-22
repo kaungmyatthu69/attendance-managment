@@ -6,7 +6,8 @@ export function useGetAllClasses() {
     queryKey: ["all-class"],
     queryFn: getClasses,
     refetchOnMount: true,
-    staleTime: 60 * 1000,
+    enabled: true,
+    // staleTime: 60 * 1000,
   });
 }
 
@@ -16,6 +17,8 @@ export function useGetCurrentClasses(){
     queryKey: ["current-class"],
     queryFn: () => getCurrentClasses(),
     refetchOnMount: true,
-    staleTime: 60 * 1000,
+    enabled: true,
+
+    // staleTime: 60 * 1000,
   });
 }
