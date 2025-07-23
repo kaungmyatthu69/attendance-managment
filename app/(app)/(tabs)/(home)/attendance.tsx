@@ -115,7 +115,7 @@ export default function Attendance() {
                         }}
                       >
                         <Text
-                          className={`font-medium text-sm ${
+                          className={`font-medium ${
                             isSelected ? "text-white" : "text-gray-700"
                           }`}
                         >

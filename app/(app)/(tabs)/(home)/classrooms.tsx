@@ -81,7 +81,7 @@ export default function Classrooms() {
                       <MapPin />
                       <Text>{item.location}</Text>
                     </HStack>
-                    <HStack space="md">
+                    <HStack space="md" className="flex  items-center">
                       <Clock />
                       <Text>{item.time}</Text>
                     </HStack>

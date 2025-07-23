@@ -165,7 +165,7 @@ export default function HomeScreen() {
           </Text>
         </Box>
       </HStack>
-      <Box className="w-full p-5  flex-row items-center my-auto  flex-wrap justify-between mt-10">
+      <Box className="w-full p-5  flex-row items-center  flex-wrap justify-between mt-16">
         {data.map((item) => (
           <Pressable
             key={item.id}
