@@ -21,7 +21,6 @@ import {
 import React, { useEffect, useState ,useRef } from "react";
 import { Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
 const tabs = [
   { key: "all", label: "All" },
   { key: "absence", label: "Absence" },
