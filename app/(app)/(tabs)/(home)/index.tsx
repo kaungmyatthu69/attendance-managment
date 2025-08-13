@@ -49,7 +49,7 @@ const data = [
   {
     id: 3,
     imageKey: "Classroom",
-    name: "Classrooms",
+    name: "My Classes",
     description: "View and submit assignments",
     route: "/classrooms",
   },

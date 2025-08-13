@@ -4,25 +4,24 @@ import { HStack } from "@/components/ui/hstack";
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { useGetAllClasses } from "@/hooks/useClasses";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import { useRef } from "react";
+import LottieView from "lottie-react-native";
 import {
   CalendarDays,
+  CalendarFold,
   ChevronLeft,
   Clock,
   MapPin,
   User,
-  CalendarFold,
 } from "lucide-react-native";
-import { useGetAllClasses } from "@/hooks/useClasses";
+import { useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import LottieView from "lottie-react-native";
 export default function Classrooms() {
-  const {data , isLoading} = useGetAllClasses();
- const animationRef = useRef<LottieView>(null);
-  
-  
+  const { data, isLoading } = useGetAllClasses();
+  const animationRef = useRef<LottieView>(null);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <VStack space="md" className="p-5  " style={{ flex: 1 }}>
@@ -35,7 +34,7 @@ export default function Classrooms() {
             <Text>Back</Text>
           </Pressable>
           <Box>
-            <Text className="text-lg font-bold text-center">Classrooms</Text>
+            <Text className="text-lg font-bold text-center">My Classes</Text>
           </Box>
         </HStack>
         {isLoading && (

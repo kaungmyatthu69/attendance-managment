@@ -19,8 +19,8 @@ import {
   Info,
 } from "lucide-react-native";
 import React, { useEffect, useState ,useRef } from "react";
-import { Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "@/components/ui/text";
 const tabs = [
   { key: "all", label: "All" },
   { key: "absence", label: "Absence" },
@@ -190,11 +190,7 @@ export default function Attendance() {
                           </HStack>
                           <HStack space="md" className="flex items-center">
                             <Clock />
-                            <Text
-                              className={
-                                activeTab !== "all" ? "text-red-500" : ""
-                              }
-                            >
+                            <Text>
                               {item.time}
                             </Text>
                           </HStack>
