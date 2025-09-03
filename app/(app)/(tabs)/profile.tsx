@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet } from "react-native";
 
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import { Box } from "@/components/ui/box";
 import { Card } from "@/components/ui/card";
 import { Divider } from "@/components/ui/divider";
@@ -13,6 +13,8 @@ import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProfile } from "@/hooks/useProfile";
+import {CircleUserRound} from "lucide-react-native"
+
 
 export default function Profile() {
   const {data:userData} = useProfile()
@@ -38,19 +40,20 @@ export default function Profile() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <Box className="px-8 pb-16 mt-10">
           <VStack space="sm" className="mx-auto items-center">
-            <Avatar size="2xl" className="mb-4">
-              <AvatarImage
+            <Avatar size="2xl" className="mb-4 bg-primary-960">
+              {/* <AvatarImage
                 source={{
                   uri: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=800&q=60",
                 }}
-              />
-              {/* <AvatarFallbackText>Kaung Myat</AvatarFallbackText> */}
+              /> */}
+              <AvatarFallbackText>{userData?.name}</AvatarFallbackText>
             </Avatar>
+
             <Text className="text-2xl font-bold text-primary-960">
               {userData?.name}
             </Text>
             <Text className="text-base font-semibold">
-             Status: {userData?.status}
+              Status: {userData?.status}
             </Text>
           </VStack>
         </Box>
@@ -59,17 +62,23 @@ export default function Profile() {
             <Text className="text-lg font-bold">Personal Information</Text>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">Email</Text>
-              <Text className="text-gray-400 text-sm">{userData?.email ?? 'testing@gmail.com'}</Text>
+              <Text className="text-gray-400 text-sm">
+                {userData?.email ?? "testing@gmail.com"}
+              </Text>
             </VStack>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">Phone</Text>
-              <Text className="text-gray-400 text-sm">{userData?.phone ?? '+9578966544'}</Text>
+              <Text className="text-gray-400 text-sm">
+                {userData?.phone ?? "+9578966544"}
+              </Text>
             </VStack>
             <VStack space="xs">
               <Text className="font-semibold text-typography-black">
                 Address
               </Text>
-              <Text className="text-gray-400 text-sm">{userData?.address ?? 'Yangon'}</Text>
+              <Text className="text-gray-400 text-sm">
+                {userData?.address ?? "Yangon"}
+              </Text>
             </VStack>
             <Divider className="my-2" />
             <Text className="text-lg font-bold">Settings</Text>
