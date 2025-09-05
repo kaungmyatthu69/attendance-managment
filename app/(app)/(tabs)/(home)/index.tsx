@@ -35,7 +35,7 @@ const data = [
   {
     id: 1,
     imageKey: "Timetable",
-    name: "Time Table",
+    name: "TimeTable",
     description: "View your class schedule",
     route: "/timetable",
   },
